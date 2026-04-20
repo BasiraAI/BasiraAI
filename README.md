@@ -26,7 +26,7 @@ intent and execution:
 - High-risk actions — treasury moves, contract interactions, 
   cross-program calls — are indistinguishable from routine ones
 
-Autonex introduced static policy rules. Static rules only catch what 
+Existing solutions use static rules. Static rules only catch what
 you anticipated. Basira handles everything else.
 
 ## How It Works
