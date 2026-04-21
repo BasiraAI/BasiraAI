@@ -50,22 +50,27 @@ No execution without a valid trust signal.
 | Devnet | `coming soon` |
 | Mainnet | `coming soon` |
 
-## Repo Structure## Quick Start
+## Repo Structure
+
+```
+programs/basira/     # On-chain program — AgentAccount, IntentRequest, ExecutionReceipt
+tests/basira.ts      # End-to-end test scenarios (approve, reject by value, reject by action)
+docs/                # Architecture notes
+Anchor.toml          # Anchor workspace config
+```
+
+## Quick Start
 
 ```bash
 git clone https://github.com/BasiraAI/BasiraAI
 cd BasiraAI
-npm install
+yarn install
+anchor test
 ```
 
-Demo scripts (devnet):
-```bash
-# Scenario 1 — high-value action gets approved
-npx ts-node scripts/demo-approve.ts
-
-# Scenario 2 — risky action gets blocked  
-npx ts-node scripts/demo-block.ts
-```
+Both scenarios run against a local validator:
+- **Approved**: transfer within value + action limits → ExecutionReceipt written
+- **Rejected**: value exceeded or action type not permitted → receipt with rejection reason
 
 ## Built On
 
