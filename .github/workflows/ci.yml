@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Fast job: build the four @basira-ai/* packages against the REAL
+  # solana-agent-kit and @elizaos/core packages. This is what catches
+  # framework API drift — if either framework ships a breaking change to
+  # its Plugin / Action / Provider contract, the plugin build fails here.
+  packages:
+    name: Build @basira packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build all @basira packages
+        # Builds in dependency order: sdk -> plugin-core -> agent-kit + eliza.
+        # agent-kit and eliza compile against the real framework type
+        # definitions, so an upstream breaking change breaks this step.
+        run: yarn build:packages
+
+      - name: Verify packages pack cleanly
+        run: |
+          for p in sdk plugins/core plugins/solana-agent-kit plugins/eliza; do
+            echo "--- npm pack: $p ---"
+            (cd "$p" && npm pack --dry-run)
+          done
+
+  # Heavier job: the on-chain program test suite (10 program scenarios +
+  # the 2 SAK and 2 Eliza plugin integration tests) against an ephemeral
+  # validator. Installs the Solana + Anchor toolchain.
+  program:
+    name: Anchor test suite
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: yarn
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@1.89.0
+
+      # Caches ~/.cargo and target/ so `cargo install avm` and the program
+      # build are not recompiled from scratch on every run.
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+
+      # Caches the installed Solana + Anchor CLI binaries, keyed on their
+      # versions — a hit skips the install steps below entirely.
+      - name: Cache Solana + Anchor toolchain
+        id: toolchain-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/solana
+            ~/.avm
+            ~/.cargo/bin/anchor
+          key: solana-3.1.11-anchor-0.32.1
+
+      - name: Install Solana CLI
+        if: steps.toolchain-cache.outputs.cache-hit != 'true'
+        run: sh -c "$(curl -sSfL https://release.anza.xyz/v3.1.11/install)"
+
+      - name: Install Anchor
+        if: steps.toolchain-cache.outputs.cache-hit != 'true'
+        run: |
+          cargo install --git https://github.com/coral-xyz/anchor avm --locked --force
+          avm install 0.32.1
+          avm use 0.32.1
+
+      - name: Add toolchain to PATH
+        run: echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+
+      - name: Create a CI keypair
+        run: solana-keygen new --no-bip39-passphrase -o "$HOME/.config/solana/id.json"
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build @basira packages
+        # The plugin integration tests import @basira-ai/plugin-core, which
+        # resolves to its built dist/. Build the packages before testing.
+        run: yarn build:packages
+
+      - name: Run anchor test
+        run: anchor test

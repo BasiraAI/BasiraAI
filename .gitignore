@@ -5,3 +5,7 @@ target
 node_modules
 test-ledger
 .yarn
+.basira-demo-policy-authority.json
+.basira-web-policy-authority.json
+sdk/dist
+plugins/*/dist

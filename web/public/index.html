@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Basira — Trust Layer for Agentic Solana</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <span class="brand">basira</span>
+      <span class="tagline">trust layer for agentic solana</span>
+    </div>
+    <div class="env" id="env"></div>
+  </header>
+
+  <main>
+    <section class="card" id="agent-card">
+      <h2>Agent</h2>
+      <div id="agent-body"><div class="muted">loading…</div></div>
+    </section>
+
+    <section class="card">
+      <h2>Submit Intent</h2>
+      <p class="muted">
+        The on-chain policy engine evaluates every submitted intent against the
+        agent's rule list. Approved Transfer intents execute via a real
+        SystemProgram CPI from the agent's vault PDA — real lamports move.
+      </p>
+      <form id="intent-form">
+        <label>
+          Action
+          <select name="action">
+            <option value="Transfer">Transfer</option>
+            <option value="Swap">Swap</option>
+            <option value="Stake">Stake</option>
+            <option value="ContractCall">ContractCall</option>
+          </select>
+        </label>
+        <label>
+          Value (SOL)
+          <input name="value" type="number" min="0" step="0.1" value="0.5" />
+        </label>
+        <label class="full" id="recipient-row">
+          Recipient (Transfer only)
+          <input name="recipient" type="text" placeholder="recipient pubkey (base58)" />
+          <span class="muted-sm">
+            <a href="#" id="recipient-random">use random new address</a>
+          </span>
+        </label>
+        <label class="check">
+          <input name="autoExecute" type="checkbox" checked />
+          auto-execute if approved
+        </label>
+        <button type="submit" id="submit-btn">submit</button>
+      </form>
+      <div id="last-result"></div>
+    </section>
+
+    <section class="card wide" id="policy-card">
+      <h2>Policy Rules</h2>
+      <p class="muted">
+        Compose the agent's policy from a menu of rule primitives. Each
+        rule's parameters are yours to pick; the same rule type may appear
+        multiple times (e.g. two rate limits with different windows). Saving
+        is signed by the agent's <strong>policy authority</strong> — a
+        separate keypair from the agent's signing authority.
+      </p>
+      <div id="rules-builder"></div>
+      <div class="rule-actions">
+        <select id="add-rule-type">
+          <option value="MaxValue">Max value per intent</option>
+          <option value="AllowedActions">Allowed actions</option>
+          <option value="RatePerWindow">Rate per window</option>
+        </select>
+        <button type="button" id="add-rule-btn" class="secondary">+ add rule</button>
+        <button type="button" id="save-policy-btn">save policy</button>
+      </div>
+      <div id="policy-result"></div>
+    </section>
+
+    <section class="card wide">
+      <h2>Intents</h2>
+      <div id="intents"><div class="muted">no intents yet</div></div>
+    </section>
+
+    <section class="card wide">
+      <h2>Execution Receipts</h2>
+      <p class="muted">
+        Immutable on-chain proof. One receipt per executed intent.
+      </p>
+      <div id="receipts"><div class="muted">no receipts yet</div></div>
+    </section>
+  </main>
+
+  <footer>
+    <span>program <code id="program-id">…</code></span>
+    <span>payer <code id="payer">…</code></span>
+    <span>balance <code id="balance">…</code></span>
+    <span>vault <code id="vault">…</code></span>
+    <span>policy authority <code id="policy-authority">…</code></span>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>

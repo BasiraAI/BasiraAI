@@ -6,7 +6,10 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-basira = "8xDqU6M7EekMiwjQZY8KyJTzezkfmgf9QiL9eXHZJZWX"
+basira = "2oYHgAYscSG4JvQcKcUq4oFGsDFU2SRBtFYFnHxpzgtu"
+
+[programs.devnet]
+basira = "2oYHgAYscSG4JvQcKcUq4oFGsDFU2SRBtFYFnHxpzgtu"
 
 [registry]
 url = "https://api.apr.dev"
